@@ -1,0 +1,190 @@
+{
+  "name": "Voya Recipe 1: MS SQL to Snowflake (Small)",
+  "description": "When there is a trigger event, do action",
+  "version": 23,
+  "private": true,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "clock",
+    "name": "timer",
+    "as": "3864038b",
+    "keyword": "trigger",
+    "dynamicPickListSelection": {
+    },
+    "toggleCfg": {
+    },
+    "input": {
+      "interval": "5"
+    },
+    "block": [
+      {
+        "number": 1,
+        "provider": "amazon_s3",
+        "name": "generate_presigned_url",
+        "as": "d62e2b40",
+        "title": null,
+        "description": null,
+        "keyword": "action",
+        "dynamicPickListSelection": {
+        },
+        "toggleCfg": {
+        },
+        "input": {
+          "http_method": "put",
+          "region": "us-east-1",
+          "bucket": "workato-demo",
+          "object_name": "voya/contacts-unload/contacts_#{_('data.workato.job_context.job_id')}.csv"
+        },
+        "extended_input_schema": [
+          {
+            "type": "string",
+            "name": "region",
+            "control_type": "text",
+            "label": "Region",
+            "hint": "Go to <b>Bucket</b>><b>Properties</b>><b>Static website hosting</b> to find your region in the 'Endpoint' URL, e.g. <b>us-west-2</b>",
+            "optional": false
+          },
+          {
+            "type": "string",
+            "name": "bucket",
+            "control_type": "text",
+            "label": "Bucket name",
+            "hint": "Exact, case sensitive bucket name",
+            "optional": false
+          },
+          {
+            "type": "string",
+            "name": "object_name",
+            "control_type": "text",
+            "label": "Object name",
+            "hint": "Exact, case sensitive name of the object/file",
+            "optional": false
+          },
+          {
+            "type": "string",
+            "name": "http_method",
+            "control_type": "select",
+            "label": "HTTP Method",
+            "hint": "METHOD HINT",
+            "default": "put",
+            "pick_list": [
+              [
+                "GET",
+                "get"
+              ],
+              [
+                "POST",
+                "post"
+              ],
+              [
+                "PUT",
+                "put"
+              ],
+              [
+                "DELETE",
+                "delete"
+              ],
+              [
+                "HEAD",
+                "head"
+              ],
+              [
+                "PATCH",
+                "patch"
+              ]
+            ],
+            "optional": false
+          },
+          {
+            "type": "integer",
+            "name": "expires_in",
+            "control_type": "integer",
+            "label": "Expires in",
+            "hint": "Duration, in seconds, of this presigned URL. Defaults to 900 seconds.",
+            "optional": true,
+            "parse_output": "integer_conversion"
+          }
+        ],
+        "visible_config_fields": [
+          "http_method"
+        ],
+        "uuid": "1ad65426-c5d7-4531-8e53-e539c36cfd77"
+      },
+      {
+        "number": 2,
+        "provider": "jdbc",
+        "name": "export_csv",
+        "as": "592cb51d",
+        "keyword": "action",
+        "dynamicPickListSelection": {
+        },
+        "toggleCfg": {
+        },
+        "input": {
+          "delimiter": "comma",
+          "sql": "select * from dbo.demo_small_voya_contacts",
+          "target_url": "#{_('data.amazon_s3.d62e2b40.url')}"
+        },
+        "uuid": "addefc36-0d2f-4085-af96-8f8c59f7bde4"
+      },
+      {
+        "number": 3,
+        "provider": "snowflake",
+        "name": "bulk_load_s3",
+        "as": "9dc2d62b",
+        "title": null,
+        "description": "Bulk load <span class=\"provider\">rows</span> into <span class=\"provider\">PUBLIC.DEMO_SMALL_VOYA_CONTACTS</span> in <span class=\"provider\">Snowflake</span> from <span class=\"provider\">External stage</span>",
+        "keyword": "action",
+        "dynamicPickListSelection": {
+          "table": "PUBLIC.DEMO_SMALL_VOYA_CONTACTS",
+          "stage": "VOYA_S3_STAGE_2 (s3://workato-demo/voya/contacts-unload)"
+        },
+        "toggleCfg": {
+          "table": true,
+          "stage": true
+        },
+        "input": {
+          "table": "PUBLIC.DEMO_SMALL_VOYA_CONTACTS",
+          "stage": "PUBLIC.VOYA_S3_STAGE_2"
+        },
+        "uuid": "d94f285c-d818-40f9-8041-6b286b3b6eaf"
+      }
+    ],
+    "uuid": "80c1985b-b85b-42a1-87f7-f2596c18f84e"
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "clock",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "jdbc",
+      "account_id": {
+        "zip_name": "opa_enabled_200gb_workatodemo_sqlserver.connection.json",
+        "name": "OPA_Enabled_200GB_workatodemo_SQLServer",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "amazon_s3",
+      "account_id": {
+        "zip_name": "voya_amazon_s3_connection.connection.json",
+        "name": "Voya Amazon S3 Connection",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "snowflake",
+      "account_id": {
+        "zip_name": "snowflake_workato_demo_account.connection.json",
+        "name": "Snowflake - Workato Demo Account",
+        "folder": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "OPA_Enabled_200GB_workatodemo_SQLServer",
+  "provider": "jdbc",
+  "secure_gateway_tunnel_name": "AWS_EC2_Strong_Agent",
+  "root_folder": true
+}

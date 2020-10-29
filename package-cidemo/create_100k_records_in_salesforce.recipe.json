@@ -1,0 +1,1995 @@
+{
+  "name": "Create 100k Records in Salesforce",
+  "description": "When there is a trigger event, do action",
+  "version": 32,
+  "private": true,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "clock",
+    "name": "timer",
+    "as": "67abbf26",
+    "title": null,
+    "description": null,
+    "keyword": "trigger",
+    "dynamicPickListSelection": {
+    },
+    "toggleCfg": {
+    },
+    "input": {
+      "interval": "5"
+    },
+    "block": [
+      {
+        "number": 1,
+        "provider": "amazon_s3",
+        "name": "get_file",
+        "as": "c7a33c17",
+        "title": null,
+        "description": null,
+        "keyword": "action",
+        "dynamicPickListSelection": {
+        },
+        "toggleCfg": {
+        },
+        "input": {
+          "accelerate": "false",
+          "region": "us-east-1",
+          "bucket": "workato-demo",
+          "object_name": "voya/sf-opptys-bulk-crete/Voya_ Bulk Input to Salesforce - Bulk Records.csv"
+        },
+        "extended_input_schema": [
+          {
+            "type": "string",
+            "name": "region",
+            "control_type": "text",
+            "label": "Region",
+            "hint": "Go to <b>Bucket</b>><b>Properties</b>><b>Static website hosting</b> to find your region in the 'Endpoint' URL, e.g. <b>us-west-2</b>",
+            "optional": false
+          },
+          {
+            "type": "string",
+            "name": "bucket",
+            "control_type": "text",
+            "label": "Bucket name",
+            "hint": "Exact, case sensitive bucket name",
+            "optional": false
+          },
+          {
+            "type": "string",
+            "name": "object_name",
+            "control_type": "text",
+            "label": "Object name",
+            "hint": "Exact, case sensitive name of the object/file",
+            "optional": false
+          },
+          {
+            "type": "integer",
+            "name": "offset",
+            "control_type": "number",
+            "label": "Offset",
+            "optional": true,
+            "parse_output": "integer_conversion"
+          },
+          {
+            "type": "integer",
+            "name": "size",
+            "control_type": "number",
+            "label": "Size",
+            "hint": "Limit of how many bytes to retrieve",
+            "optional": true,
+            "parse_output": "integer_conversion"
+          },
+          {
+            "type": "number",
+            "name": "accelerate",
+            "control_type": "number",
+            "label": "Use accelerated endpoint",
+            "hint": "              Default is <b>false</b>. Enter <b>true</b> to use accelerated endpoint.\n              Go to <b>Bucket</b>><b>Properties</b>><b>Transfer acceleration</b> to check if accelerated endpoint is enabled\n",
+            "default": "false",
+            "sticky": true,
+            "optional": true,
+            "parse_output": "float_conversion"
+          },
+          {
+            "type": "integer",
+            "name": "chunk_size",
+            "control_type": "number",
+            "label": "Download chunk size in kilobytes",
+            "hint": "Download this many kilobytes at a time. Default is <b>1024 (1MB)</b>, minimum is <b>32 (KB)</b>",
+            "optional": true,
+            "parse_output": "integer_conversion"
+          }
+        ],
+        "visible_config_fields": [
+          "accelerate"
+        ],
+        "uuid": "d9b4899b-893b-4906-8aa4-0d81031d5e42"
+      },
+      {
+        "number": 2,
+        "provider": "salesforce",
+        "name": "insert_bulk_job",
+        "as": "de0a4007",
+        "title": "Create Opportunities in bulk from CSV file",
+        "description": "Create <span class=\"provider\">Opportunities</span> in bulk in <span class=\"provider\">Salesforce</span> from CSV file",
+        "keyword": "action",
+        "dynamicPickListSelection": {
+          "object": "Opportunity"
+        },
+        "toggleCfg": {
+          "csv_data.skip_first_line": true
+        },
+        "input": {
+          "csv_data": {
+            "col_sep": ",",
+            "skip_first_line": "true",
+            "csv_columns": "[{\"control_type\":\"text\",\"label\":\"Opportunity name\",\"name\":\"OpportunityName\",\"type\":\"string\",\"optional\":true},{\"name\":\"Stage\",\"type\":\"string\",\"optional\":true,\"control_type\":\"text\"},{\"name\":\"CloseDate\",\"type\":\"string\",\"optional\":true,\"control_type\":\"text\"}]",
+            "csv": "#{_('data.amazon_s3.c7a33c17.file_content')}"
+          },
+          "advanced": {
+            "wait_to_complete": "true",
+            "csv_chunk_size": "100"
+          },
+          "object": "Opportunity",
+          "records": {
+            "Name": "0",
+            "StageName": "1",
+            "CloseDate": "2"
+          }
+        },
+        "extended_output_schema": [
+          {
+            "type": "string",
+            "name": "success",
+            "control_type": "text",
+            "label": "All records successfully processed?"
+          },
+          {
+            "type": "string",
+            "name": "numberRecordsFailed",
+            "control_type": "text",
+            "label": "Number of records failed"
+          },
+          {
+            "type": "string",
+            "name": "retryCount",
+            "control_type": "text",
+            "label": "Number of retried records"
+          },
+          {
+            "type": "string",
+            "name": "numberRecordsProcessed",
+            "control_type": "text",
+            "label": "Number of records processed"
+          },
+          {
+            "type": "string",
+            "name": "job_info",
+            "control_type": "text",
+            "label": "CSV contents with failed records"
+          },
+          {
+            "type": "string",
+            "name": "success_rows",
+            "control_type": "text",
+            "label": "CSV content with success records"
+          },
+          {
+            "type": "array",
+            "name": "jobs",
+            "label": "Salesforce bulk jobs",
+            "of": "object",
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Records in job successfully processed?",
+                "type": "string",
+                "name": "success"
+              },
+              {
+                "control_type": "text",
+                "label": "Job ID",
+                "type": "string",
+                "name": "id"
+              },
+              {
+                "control_type": "text",
+                "label": "Number of records failed",
+                "type": "string",
+                "name": "numberRecordsFailed"
+              },
+              {
+                "control_type": "text",
+                "label": "Number of records processed",
+                "type": "string",
+                "name": "numberRecordsProcessed"
+              },
+              {
+                "control_type": "text",
+                "label": "Error message",
+                "type": "string",
+                "name": "errorMessage"
+              }
+            ]
+          }
+        ],
+        "extended_input_schema": [
+          {
+            "type": "object",
+            "name": "records",
+            "label": "CSV to Salesforce Opportunities field mapping",
+            "properties": [
+              {
+                "control_type": "select",
+                "label": "Account ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "AccountId",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Record type ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "RecordTypeId",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Is private",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "IsPrivate",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Name",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": null,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Name",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Description",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Description",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Stage name",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": null,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "StageName",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Amount",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "currency",
+                "hint": null,
+                "type": "integer",
+                "name": "Amount",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Probability",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "percent",
+                "hint": null,
+                "type": "integer",
+                "name": "Probability",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Total opportunity quantity",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "double",
+                "hint": null,
+                "type": "integer",
+                "name": "TotalOpportunityQuantity",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Close date",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": null,
+                "sticky": true,
+                "sfdc_field_type": "date",
+                "hint": null,
+                "type": "integer",
+                "name": "CloseDate",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Type",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "Type",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Next step",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "NextStep",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Lead source",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "LeadSource",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Forecast category name",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "ForecastCategoryName",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Campaign ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "CampaignId",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Pricebook 2 ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "Pricebook2Id",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Owner ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "OwnerId",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Created date",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "datetime",
+                "hint": null,
+                "type": "integer",
+                "name": "CreatedDate",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Created by ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "CreatedById",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Last modified date",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "datetime",
+                "hint": null,
+                "type": "integer",
+                "name": "LastModifiedDate",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Last modified by ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "LastModifiedById",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Synced quote ID",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "SyncedQuoteId",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Delivery installation status c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "DeliveryInstallationStatus__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Tracking number c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "TrackingNumber__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Order number c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "OrderNumber__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Current generators c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "CurrentGenerators__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Main competitors c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "MainCompetitors__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "QBO bill ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "QBO_Bill_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Xero invoice c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Xero_Invoice__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Intacct invoice ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Intacct_Invoice_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Workday invoice ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Workday_Invoice_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Opportunity payment c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Opportunity_Payment__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Update quickbooks c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "Update_Quickbooks__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Netsuite ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Netsuite_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Netsuite URL c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "url",
+                "hint": null,
+                "type": "integer",
+                "name": "Netsuite_URL__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Procore project ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Procore_Project_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Sync to quickbooks c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "Sync_to_Quickbooks__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Send to distribution list c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "Send_to_Distribution_List__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Paid amount c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "currency",
+                "hint": null,
+                "type": "integer",
+                "name": "Paid_Amount__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Opportunity ID group A c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Opportunity_ID_Group_A__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Set to close won c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "Set_to_Close_Won__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Quickbooks ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Quickbooks_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Threshold c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "boolean",
+                "hint": null,
+                "type": "integer",
+                "name": "Threshold__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Mp c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "multipicklist",
+                "hint": null,
+                "type": "integer",
+                "name": "mp__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Fruits c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "picklist",
+                "hint": null,
+                "type": "integer",
+                "name": "Fruits__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Projectnames multiselect c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "multipicklist",
+                "hint": null,
+                "type": "integer",
+                "name": "Projectnames_Multiselect__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 1 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_1__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 2 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_2__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 3 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_3__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 4 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_4__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 5 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_5__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Test field 6 c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "textarea",
+                "hint": null,
+                "type": "integer",
+                "name": "Test_Field_6__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "OM review status c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "OM_Review_Status__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Primary solution partner c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "Primary_Solution_Partner__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Docu sign ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "DocuSign_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Opportunity quantity c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "Opportunity_Quantity__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "EIN number c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "EIN_Number__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Out systems account ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "reference",
+                "hint": null,
+                "type": "integer",
+                "name": "OutSystems_Account_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Bill com ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "bill_com_id__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "WD supplier invoice ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "WD_Supplier_Invoice_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "WD customer invoice ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "string",
+                "hint": null,
+                "type": "integer",
+                "name": "WD_Customer_Invoice_ID__c",
+                "parent": "records"
+              },
+              {
+                "control_type": "select",
+                "label": "Basecamp project ID c",
+                "parse_output": "integer_conversion",
+                "pick_list": [
+                  [
+                    "OpportunityName",
+                    0
+                  ],
+                  [
+                    "Stage",
+                    1
+                  ],
+                  [
+                    "CloseDate",
+                    2
+                  ]
+                ],
+                "optional": true,
+                "sticky": true,
+                "sfdc_field_type": "double",
+                "hint": null,
+                "type": "integer",
+                "name": "Basecamp_Project_ID__c",
+                "parent": "records"
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "name": "advanced",
+            "label": "Advanced configuration",
+            "optional": true,
+            "properties": [
+              {
+                "control_type": "checkbox",
+                "label": "Wait for Salesforce to process all CSV rows?",
+                "optional": true,
+                "default": "true",
+                "extends_schema": true,
+                "hint": "When <b>Yes</b>, action will return once Salesforce processes all the rows in the CSV file. When <b>No</b>, action will return once the CSV file is uploaded to Salesforce.",
+                "type": "string",
+                "name": "wait_to_complete",
+                "parent": "advanced"
+              },
+              {
+                "control_type": "number",
+                "label": "CSV chunk size for each Salesforce bulk job (in MB)",
+                "default": 100,
+                "optional": true,
+                "hint": "If the CSV file is greater than the chunk size, this action will automatically create multiple Salesforce bulk jobs.<br>Defaults to 100MB.",
+                "type": "string",
+                "name": "csv_chunk_size",
+                "parent": "advanced"
+              }
+            ]
+          }
+        ],
+        "visible_config_fields": [
+          "csv_data",
+          "csv_data.col_sep",
+          "csv_data.skip_first_line",
+          "object",
+          "advanced",
+          "advanced.wait_to_complete",
+          "advanced.csv_chunk_size",
+          "csv_data.csv_columns",
+          "records.AccountId",
+          "records.RecordTypeId",
+          "records.IsPrivate",
+          "records.Name",
+          "records.Description",
+          "records.StageName",
+          "records.Amount",
+          "records.Probability",
+          "records.TotalOpportunityQuantity",
+          "records.CloseDate",
+          "records.Type",
+          "records.NextStep",
+          "records.LeadSource",
+          "records.ForecastCategoryName",
+          "records.CampaignId",
+          "records.Pricebook2Id",
+          "records.OwnerId",
+          "records.CreatedDate",
+          "records.CreatedById",
+          "records.LastModifiedDate",
+          "records.LastModifiedById",
+          "records.SyncedQuoteId",
+          "records.DeliveryInstallationStatus__c",
+          "records.TrackingNumber__c",
+          "records.OrderNumber__c",
+          "records.CurrentGenerators__c",
+          "records.MainCompetitors__c",
+          "records.QBO_Bill_ID__c",
+          "records.Xero_Invoice__c",
+          "records.Intacct_Invoice_ID__c",
+          "records.Workday_Invoice_ID__c",
+          "records.Opportunity_Payment__c",
+          "records.Update_Quickbooks__c",
+          "records.Netsuite_ID__c",
+          "records.Netsuite_URL__c",
+          "records.Procore_Project_ID__c",
+          "records.Sync_to_Quickbooks__c",
+          "records.Send_to_Distribution_List__c",
+          "records.Paid_Amount__c",
+          "records.Opportunity_ID_Group_A__c",
+          "records.Set_to_Close_Won__c",
+          "records.Quickbooks_ID__c",
+          "records.Threshold__c",
+          "records.mp__c",
+          "records.Fruits__c",
+          "records.Projectnames_Multiselect__c",
+          "records.Test_Field_1__c",
+          "records.Test_Field_2__c",
+          "records.Test_Field_3__c",
+          "records.Test_Field_4__c",
+          "records.Test_Field_5__c",
+          "records.Test_Field_6__c",
+          "records.OM_Review_Status__c",
+          "records.Primary_Solution_Partner__c",
+          "records.DocuSign_ID__c",
+          "records.Opportunity_Quantity__c",
+          "records.EIN_Number__c",
+          "records.OutSystems_Account_ID__c",
+          "records.bill_com_id__c",
+          "records.WD_Supplier_Invoice_ID__c",
+          "records.WD_Customer_Invoice_ID__c",
+          "records.Basecamp_Project_ID__c",
+          "relationship_fields"
+        ],
+        "uuid": "e209405b-2ba7-48d3-9a4e-6f9653ab7af5"
+      },
+      {
+        "number": 3,
+        "provider": "logger",
+        "name": "log_message",
+        "as": "740e16ad",
+        "title": null,
+        "description": null,
+        "keyword": "action",
+        "dynamicPickListSelection": {
+        },
+        "toggleCfg": {
+        },
+        "input": {
+          "message": "#{_('data.salesforce.de0a4007.job_info')}"
+        },
+        "visible_config_fields": [
+          "message"
+        ],
+        "uuid": "4b4093bd-4f36-4285-8fff-3367df21d57a"
+      }
+    ],
+    "uuid": "be1558a2-ed3c-434c-9c9a-dcaf068b57c4"
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "salesforce",
+      "account_id": {
+        "zip_name": "voya_salesforce_csdemos.connection.json",
+        "name": "Voya: Salesforce CSDemos",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "clock",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "logger",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "amazon_s3",
+      "account_id": {
+        "zip_name": "voya_amazon_s3_connection.connection.json",
+        "name": "Voya Amazon S3 Connection",
+        "folder": ""
+      }
+    }
+  ]
+}

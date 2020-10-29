@@ -1,0 +1,449 @@
+{
+  "name": "Copy of Voya Recipe 2: Salesforce Leads to Snowflake",
+  "description": "When there is a trigger event, do action",
+  "version": 2,
+  "private": true,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "clock",
+    "name": "timer",
+    "as": "e336f161",
+    "keyword": "trigger",
+    "dynamicPickListSelection": {
+    },
+    "toggleCfg": {
+    },
+    "input": {
+      "interval": "5"
+    },
+    "block": [
+      {
+        "number": 1,
+        "keyword": "try",
+        "dynamicPickListSelection": {
+        },
+        "toggleCfg": {
+        },
+        "input": {
+        },
+        "block": [
+          {
+            "number": 2,
+            "provider": "salesforce",
+            "name": "search_sobjects_soql_bulk_csv",
+            "as": "9e7b6e32",
+            "title": "Search Leads in bulk using SOQL",
+            "description": "Search <span class=\"provider\">Leads</span> in bulk using SOQL query in <span class=\"provider\">Salesforce</span>",
+            "keyword": "action",
+            "dynamicPickListSelection": {
+              "sobject_name": "Lead"
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "include_deleted_records": "false",
+              "include_header": "false",
+              "custom_select_clause": "false",
+              "sobject_name": "Lead"
+            },
+            "comment": "Query all Opportunity Records in Salesforce.",
+            "uuid": "9d69b40e-e717-41f4-823e-08913a66d9f2"
+          },
+          {
+            "number": 3,
+            "provider": "workato_variable",
+            "name": "declare_variable",
+            "as": "9cb1ebfe",
+            "title": "  Create variable FileName",
+            "description": "Create variable <span class=\"provider\">FileName</span>",
+            "keyword": "action",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "type": "string",
+              "name": "FileName",
+              "value": "voya/sf-leads-unload/SF_Leads.csv"
+            },
+            "extended_output_schema": [
+              {
+                "type": "string",
+                "name": "value",
+                "control_type": "text",
+                "label": "FileName"
+              }
+            ],
+            "extended_input_schema": [
+              {
+                "type": "string",
+                "name": "value",
+                "control_type": "text",
+                "label": "Default value",
+                "hint": "Default value for the variable",
+                "sticky": true,
+                "optional": true,
+                "strip_interpolation": true
+              }
+            ],
+            "comment": "Generate CSV file name.",
+            "uuid": "db87b14f-c315-4a2d-9b52-dd52ca742ad1"
+          },
+          {
+            "number": 4,
+            "provider": "amazon_s3",
+            "name": "delete_file",
+            "as": "55197557",
+            "title": null,
+            "description": null,
+            "keyword": "action",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "region": "us-east-1",
+              "bucket": "workato-demo",
+              "object_name": "#{_('data.workato_variable.9cb1ebfe.value')}"
+            },
+            "extended_input_schema": [
+              {
+                "type": "string",
+                "name": "region",
+                "control_type": "text",
+                "label": "Region",
+                "hint": "Go to <b>Bucket</b>><b>Properties</b>><b>Static website hosting</b> to find your region in the 'Endpoint' URL, e.g. <b>us-west-2</b>",
+                "optional": false
+              },
+              {
+                "type": "string",
+                "name": "bucket",
+                "control_type": "text",
+                "label": "Bucket name",
+                "hint": "Exact, case sensitive bucket name",
+                "optional": false
+              },
+              {
+                "type": "string",
+                "name": "object_name",
+                "control_type": "text",
+                "label": "Object name",
+                "hint": "Exact, case sensitive name of the object/file",
+                "optional": false
+              }
+            ],
+            "visible_config_fields": [
+              "object_name"
+            ],
+            "comment": "Delete the uploaded file from the previous job run.",
+            "uuid": "d33cb58b-10f3-4187-ab92-42943f042257"
+          },
+          {
+            "number": 5,
+            "provider": "amazon_s3",
+            "name": "upload_file_streaming",
+            "as": "eac69d15",
+            "title": null,
+            "description": null,
+            "keyword": "action",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "accelerate": "false",
+              "region": "us-east-1",
+              "bucket": "workato-demo",
+              "object_name": "#{_('data.workato_variable.9cb1ebfe.value')}",
+              "file": "#{_('data.salesforce.9e7b6e32.results')}"
+            },
+            "extended_input_schema": [
+              {
+                "type": "string",
+                "name": "region",
+                "control_type": "text",
+                "label": "Region",
+                "hint": "Go to <b>Bucket</b>><b>Properties</b>><b>Static website hosting</b> to find your region in the 'Endpoint' URL, e.g. <b>us-west-2</b>",
+                "optional": false
+              },
+              {
+                "type": "string",
+                "name": "bucket",
+                "control_type": "text",
+                "label": "Bucket name",
+                "hint": "Exact, case sensitive bucket name",
+                "optional": false
+              },
+              {
+                "type": "string",
+                "name": "object_name",
+                "control_type": "text",
+                "label": "Object name",
+                "hint": "Exact, case sensitive name of the object/file",
+                "optional": false
+              },
+              {
+                "type": "string",
+                "name": "file",
+                "control_type": "text",
+                "label": "Contents",
+                "hint": "The file contents to upload",
+                "sticky": true,
+                "optional": true,
+                "strip_interpolation": true
+              },
+              {
+                "type": "number",
+                "name": "accelerate",
+                "control_type": "number",
+                "label": "Use accelerated endpoint",
+                "hint": "                Default is <b>false</b>. Enter <b>true</b> to use accelerated endpoint.\n                Go to <b>Bucket</b>><b>Properties</b>><b>Transfer acceleration</b> to check if accelerated endpoint is enabled\n",
+                "default": "false",
+                "sticky": true,
+                "optional": true,
+                "parse_output": "float_conversion"
+              },
+              {
+                "type": "string",
+                "name": "canned_permission",
+                "control_type": "select",
+                "label": "Canned ACL",
+                "hint": "                Learn more about canned ACL\n                <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl\" target=\"_blank\">here</a>.\n",
+                "sticky": true,
+                "pick_list": [
+                  [
+                    "Private",
+                    "private"
+                  ],
+                  [
+                    "Public  read",
+                    "public-read"
+                  ],
+                  [
+                    "Public  read  write",
+                    "public-read-write"
+                  ],
+                  [
+                    "Aws  exec  read",
+                    "aws-exec-read"
+                  ],
+                  [
+                    "Authenticated  read",
+                    "authenticated-read"
+                  ],
+                  [
+                    "Bucket  owner  read",
+                    "bucket-owner-read"
+                  ],
+                  [
+                    "Bucket  owner  full  control",
+                    "bucket-owner-full-control"
+                  ],
+                  [
+                    "Log  delivery  write",
+                    "log-delivery-write"
+                  ]
+                ],
+                "optional": true,
+                "toggle_hint": "Select canned ACL",
+                "toggle_field": {
+                  "type": "array",
+                  "name": "explicit_permissions",
+                  "label": "Explicit permissions",
+                  "control_type": "key_value",
+                  "optional": true,
+                  "toggle_hint": "Use explicit permissions",
+                  "empty_list_title": "Does this HTTP request require headers?",
+                  "empty_list_text": "Refer to the API documentation and add required headers to this HTTP request",
+                  "item_label": "Header",
+                  "properties": [
+                    {
+                      "name": "name",
+                      "label": "Permission name"
+                    },
+                    {
+                      "name": "value",
+                      "label": "Grantee",
+                      "placeholder": "Email, user ID or group URI"
+                    }
+                  ],
+                  "hint": "                  Learn more about Access Control List (ACL) specific request headers\n                  <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/archive-RESTObjectPUTacl.html\" target=\"_blank\">here</a>.\n"
+                }
+              }
+            ],
+            "comment": "Upload new file.",
+            "uuid": "a3bbeb26-3a32-4237-b062-e871b74f05bb"
+          },
+          {
+            "number": 6,
+            "keyword": "stop",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "stop_with_error": "false"
+            },
+            "uuid": "04fa59f4-817c-4135-97f1-e14e47d9c920"
+          },
+          {
+            "number": 7,
+            "provider": "snowflake",
+            "name": "run_custom_sql",
+            "as": "501e7d2b",
+            "title": null,
+            "description": null,
+            "keyword": "action",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+              "update_only": true
+            },
+            "input": {
+              "update_only": "false",
+              "sql": "truncate voya_salesforce_leads_demo"
+            },
+            "extended_output_schema": [
+              {
+                "type": "array",
+                "name": "rows",
+                "label": "Rows",
+                "of": "object",
+                "properties": [
+
+                ]
+              },
+              {
+                "type": "integer",
+                "name": "rows_affected",
+                "control_type": "number",
+                "label": "Rows affected",
+                "parse_output": "integer_conversion"
+              }
+            ],
+            "comment": "Truncate table to clean up old Opportunity records.",
+            "uuid": "56c1c790-43af-47ea-82e2-2ba432a261b6"
+          },
+          {
+            "number": 8,
+            "provider": "snowflake",
+            "name": "bulk_load_s3",
+            "as": "5545e39c",
+            "title": null,
+            "description": "Bulk load <span class=\"provider\">rows</span> into <span class=\"provider\">PUBLIC.VOYA_SALESFORCE_LEADS_DEMO</span> in <span class=\"provider\">Snowflake</span> from <span class=\"provider\">External stage</span>",
+            "keyword": "action",
+            "dynamicPickListSelection": {
+              "table": "PUBLIC.VOYA_SALESFORCE_LEADS_DEMO",
+              "stage": "VOYA_S3_LEADS_STAGE (s3://workato-demo/voya/sf-leads-unload)"
+            },
+            "toggleCfg": {
+              "table": true,
+              "stage": true
+            },
+            "input": {
+              "table": "PUBLIC.VOYA_SALESFORCE_LEADS_DEMO",
+              "stage": "PUBLIC.VOYA_S3_LEADS_STAGE"
+            },
+            "comment": "Load latest Opportunity Records in Snowflake.",
+            "uuid": "c8506895-c7bf-450e-abca-c1cb2be05ef5"
+          },
+          {
+            "number": 9,
+            "as": "a7abd3fe",
+            "keyword": "catch",
+            "dynamicPickListSelection": {
+            },
+            "toggleCfg": {
+            },
+            "input": {
+              "max_retry_count": "0",
+              "retry_interval": "2"
+            },
+            "block": [
+              {
+                "number": 10,
+                "provider": "logger",
+                "name": "log_message",
+                "as": "2d553e7c",
+                "keyword": "action",
+                "dynamicPickListSelection": {
+                },
+                "toggleCfg": {
+                },
+                "input": {
+                  "message": "#{_('data.catch.a7abd3fe.type')} - #{_('data.catch.a7abd3fe.message')}"
+                },
+                "visible_config_fields": [
+                  "message"
+                ],
+                "uuid": "48dbe61d-d231-47a4-9175-b76591f65fa6"
+              }
+            ],
+            "uuid": "68b20d26-03ac-4229-9562-28b02bbec925"
+          }
+        ],
+        "uuid": "eaadeb85-f832-4e8f-aa54-92f2c49df243"
+      }
+    ],
+    "job_report_schema": [
+      {
+        "name": "custom_column_1",
+        "label": "FileName"
+      },
+      {
+        "name": "custom_column_2",
+        "label": "RecordCount"
+      }
+    ],
+    "job_report_config": {
+      "custom_column_1": "#{_('data.workato_variable.9cb1ebfe.value')}",
+      "custom_column_2": "#{_('data.salesforce.9e7b6e32.numberRecordsProcessed')}"
+    },
+    "uuid": "77142e47-a8a7-4299-af0b-7df72634e2e7"
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "salesforce",
+      "account_id": {
+        "zip_name": "voya_salesforce_csdemos.connection.json",
+        "name": "Voya: Salesforce CSDemos",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "clock",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "amazon_s3",
+      "account_id": {
+        "zip_name": "voya_amazon_s3_connection.connection.json",
+        "name": "Voya Amazon S3 Connection",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "snowflake",
+      "account_id": {
+        "zip_name": "snowflake_workato_demo_account.connection.json",
+        "name": "Snowflake - Workato Demo Account",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "logger",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_variable",
+      "account_id": null
+    }
+  ]
+}
