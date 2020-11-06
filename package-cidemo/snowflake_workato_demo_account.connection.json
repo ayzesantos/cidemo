@@ -1,6 +1,0 @@
-{
-  "name": "Snowflake - Workato Demo Account",
-  "provider": "snowflake",
-  "secure_gateway_tunnel_name": null,
-  "root_folder": true
-}
