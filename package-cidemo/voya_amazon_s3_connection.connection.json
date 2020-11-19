@@ -1,0 +1,6 @@
+{
+  "name": "Voya Amazon S3 Connection",
+  "provider": "amazon_s3",
+  "secure_gateway_tunnel_name": null,
+  "root_folder": true
+}
