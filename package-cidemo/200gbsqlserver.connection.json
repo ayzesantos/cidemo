@@ -1,0 +1,6 @@
+{
+  "name": "200GBSQLServer",
+  "provider": "mssql",
+  "secure_gateway_tunnel_name": null,
+  "root_folder": true
+}

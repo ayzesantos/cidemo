@@ -1,0 +1,6 @@
+{
+  "name": "My fourth SQL Server account",
+  "provider": "mssql",
+  "secure_gateway_tunnel_name": "AWS_EC2_Strong_Agent",
+  "root_folder": true
+}
