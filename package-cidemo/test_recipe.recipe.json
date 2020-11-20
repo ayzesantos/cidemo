@@ -1,0 +1,24 @@
+{
+  "name": "Test Recipe",
+  "description": "When there is a trigger event, do action",
+  "version": 1,
+  "private": true,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "keyword": "trigger",
+    "dynamicPickListSelection": {
+    },
+    "toggleCfg": {
+    },
+    "input": {
+    },
+    "block": [
+
+    ],
+    "uuid": "bec76f4d-e6fe-41f6-b990-c553f4d167dc"
+  },
+  "config": [
+
+  ]
+}
